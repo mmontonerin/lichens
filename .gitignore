@@ -1,0 +1,10 @@
+data/
+results/
+scripts/*/log
+scripts/*/*/log
+scripts/*/old
+scripts/metagenomics/BASALT
+scripts/metagenomics/launch
+scripts/metagenomics/taxonkit
+scripts/metagenomics/yamls
+scripts/data_eval/KrakenTools
