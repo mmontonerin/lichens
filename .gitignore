@@ -3,6 +3,7 @@ results/
 scripts/*/log
 scripts/*/*/log
 scripts/*/old
+scipts/*/db
 scripts/metagenomics/BASALT
 scripts/metagenomics/launch
 scripts/metagenomics/taxonkit
