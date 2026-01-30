@@ -18,4 +18,6 @@ mv refseq* db/
 cp db/refseq*/*protein.faa.gz db/ 
 gunzip db/*protein.faa.gz
 
-cat db/*faa > organelle_proteins.faa
+cat db/*faa > db/organelle_proteins.faa
+
+rm db/*.protein.faa
