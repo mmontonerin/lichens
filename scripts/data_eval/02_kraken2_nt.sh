@@ -1,6 +1,6 @@
 #!/bin/bash
-#BSUB -o cellbender-%J-output.log
-#BSUB -e cellbender-%J-error.log 
+#BSUB -o ./log/kraken-%J-output.log
+#BSUB -e ./log/kraken-%J-error.log 
 #BSUB -J kraken2_nt
 #BSUB -q hugemem
 #BSUB -G team301
