@@ -2,12 +2,12 @@
 #BSUB -o ./log/prodigal-meta-%J-output.log
 #BSUB -e ./log/prodigal-meta-%J-error.log 
 #BSUB -J prodigal
-#BSUB -q long
+#BSUB -q week
 #BSUB -G team301
 #BSUB -n 8
-#BSUB -W 48:00
-#BSUB -M 20000
-#BSUB -R "select[mem>20000] rusage[mem=20000]"
+#BSUB -W 160:00
+#BSUB -M 2000
+#BSUB -R "select[mem>2000] rusage[mem=2000]"
 
 module load conda
 conda activate bioinfo

@@ -2,10 +2,10 @@
 #BSUB -o ./log/diamond-assembly-%J-output.log
 #BSUB -e ./log/diamond-assembly-%J-error.log 
 #BSUB -J diamond_blastx
-#BSUB -q long
+#BSUB -q week
 #BSUB -G team301
 #BSUB -n 16
-#BSUB -W 48:00
+#BSUB -W 160:00
 #BSUB -M 30000
 #BSUB -R "select[mem>30000] rusage[mem=30000]"
 

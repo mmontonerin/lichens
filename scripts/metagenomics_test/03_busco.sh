@@ -6,8 +6,8 @@
 #BSUB -G team301
 #BSUB -n 16
 #BSUB -W 48:00
-#BSUB -M 80000
-#BSUB -R "select[mem>80000] rusage[mem=80000]"
+#BSUB -M 100000
+#BSUB -R "select[mem>100000] rusage[mem=100000]"
 
 module load conda
 conda activate busco
