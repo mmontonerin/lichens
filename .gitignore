@@ -29,3 +29,8 @@ scripts/metagenomics_test/db/refseq_plastid/plastid.3.genomic.gbff.gz
 scripts/metagenomics_test/db/refseq_plastid/plastid.3.protein.faa.gz
 scripts/metagenomics_test/db/refseq_plastid/plastid.3.protein.gpff.gz
 scripts/metagenomics_test/markerscan/log
+scripts/metagenomics_test/markerscan/tmp
+scripts/metagenomics_test/markerscan/markerscan_pr-15.sif
+scripts/metagenomics_test/markerscan/db
+scripts/metagenomics_test/markerscan/yamls
+scripts/metagenomics_test/markerscan/reads
