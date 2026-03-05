@@ -5,9 +5,9 @@
 #BSUB -e ./log/concatenate_reads-%J.err
 #BSUB -G team301
 #BSUB -n 1
-#BSUB -M 10000
+#BSUB -M 80000
 #BSUB -W 08:00
-#BSUB -R "select[mem>10000] rusage[mem=10000]"
+#BSUB -R "select[mem>80000] rusage[mem=80000]"
 
 module load conda
 conda activate bioinfo
