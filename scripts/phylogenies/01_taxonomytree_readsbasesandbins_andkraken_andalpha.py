@@ -37,14 +37,15 @@ for df in [df_std, df_euk]:
 # Kraken data
 domain  = pd.read_csv("/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/kraken2/00_csv-rank_reports_includeparents_reads/domain_all_combined_filtered.csv")
 kingdom = pd.read_csv("/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/kraken2/00_csv-rank_reports_includeparents_reads/kingdom_all_combined_filtered.csv")
+
 # Colors
-COL_DOMAIN = {"Bacteria": (241, 196, 15), "Eukaryota": (108, 92, 231)}
-COL_EUK    = {"Fungi": (179, 157, 219), "Metazoa": (129, 212, 250), "Viridiplantae": (102, 187, 106)}
-COL_BACTERIA = (241, 196, 15)   # yellow for the "other" slot
+COL_DOMAIN   = {"Bacteria": (241, 196, 15), "Eukaryota": (108, 92, 231)}
+COL_EUK      = {"Fungi": (179, 157, 219), "Metazoa": (129, 212, 250), "Viridiplantae": (102, 187, 106)}
+COL_BACTERIA = (241, 196, 15)
 
 # Alpha-diversity data
-MITO_CSV    = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/alpha_diversity_mitochondria.csv"
-PLASTID_CSV = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/alpha_diversity_plastid.csv"
+MITO_CSV     = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/alpha_diversity_mitochondria.csv"
+PLASTID_CSV  = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/alpha_diversity_plastid.csv"
 BACTERIA_CSV = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/bacterial_alpha_diversity.csv"
 
 def load_diversity(path, key_col="species"):
@@ -96,9 +97,9 @@ READ_TICKS = list(range(0, 31, 10))
 BASES_MAX  = _nice_max(df_reads["bases_Gbp"].max() if len(df_reads) else 1.0)
 BASE_TICKS = _ticks(BASES_MAX)
 
-BAR_W             = 40
-BAR_H             = 30
-LEFT_GAP_PX       = 20
+BAR_W              = 40
+BAR_H              = 30
+LEFT_GAP_PX        = 20
 BETWEEN_COL_GAP_PX = 8
 
 GRID_CLR = (229, 229, 229)
@@ -154,8 +155,7 @@ def _bar_img_face(value, vmax, ticks, w=BAR_W, h=BAR_H):
     _bar_cache[key] = f
     return f
 
-# --- Kraken panel faces 
-# Build maps
+# --- Kraken panel faces ---
 def build_perc_map(table_df, categories, species_col="species", name_col="name", value_col="percent"):
     df2 = table_df[[species_col, name_col, value_col]].copy()
     df2[species_col] = df2[species_col].str.replace("_", " ", regex=False)
@@ -196,58 +196,86 @@ def make_bar_face(segments, width=BAR_W_TAX, height=BAR_H_TAX):
     _bar_cache[key] = face
     return face
 
-# Alpha diversity panel faces
-SHANNON_MAX   = 5.0          # max shannon value for bar scaling
-SHANNON_TICKS = [1, 2, 3, 4, 5] # vertical lines every 1 unit
-DIV_BAR_W     = 80           # pixel width of each diversity bar
-DIV_BAR_H     = BAR_H
-COL_MITO      = (89, 44, 130)   # dark purple
-COL_PLASTID   = (89, 44, 130)   # dark purple
-COL_BACTERIA_DIV = (241, 196, 15)  # yellow
+# --- Alpha diversity panel (single combined matplotlib image per species) ---
+SHANNON_MAX   = 4.0
+SHANNON_TICKS = [1, 2, 3, 4]
 
-def make_diversity_bar(shannon_val, richness, color, w=DIV_BAR_W, h=DIV_BAR_H):
-    key = ("div", w, h, round(float(shannon_val), 4), tuple(color), richness)
-    if key in _bar_cache:
-        return _bar_cache[key]
+# Each tuple: (display_label, color_rgb_tuple, dict_name_string)
+DIV_SOURCES = [
+    ("mito",     (89, 44, 130),   "mito_div"),
+    ("plastid",  (89, 44, 130),   "plastid_div"),
+    ("bacteria", (241, 196, 15),  "bacteria_div"),
+]
 
-    img = Image.new("RGB", (w, h), BG_CLR)
-    draw = ImageDraw.Draw(img)
+DIV_PANEL_W = 600   # total pixel width for all three diversity bars + labels
+DIV_PANEL_H = BAR_H
 
-    # vertical tick lines every 1 shannon unit
-    for tk in SHANNON_TICKS:
-        x = int(round(w * (tk / SHANNON_MAX)))
-        draw.line([(x, 0), (x, h)], fill=GRID_CLR, width=1)
+_div_cache = {}
 
-    # bar fill
-    bw = int(round(w * (max(0.0, min(float(shannon_val), SHANNON_MAX)) / SHANNON_MAX)))
-    if bw > 0:
-        draw.rectangle([0, 0, max(bw-1, 0), h-1], fill=color)
+def _diversity_img_face(sp, w=DIV_PANEL_W, h=DIV_PANEL_H):
+    if sp in _div_cache:
+        return _div_cache[sp]
+
+    fig, ax = plt.subplots(figsize=(w / 100, h / 100), dpi=100)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    n        = len(DIV_SOURCES)
+    cell_w   = w / n          # pixel width per source cell
+    label_f  = 0.25           # fraction of cell_w reserved for "n=X" label
+
+    ax.set_xlim(0, w)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+
+    for j, (label, color, dict_name) in enumerate(DIV_SOURCES):
+        div_dict    = globals()[dict_name]
+        row         = div_dict.get(sp)
+        shannon_val = float(row.get("shannon_phylum", 0.0)) if row else 0.0
+        richness    = int(row.get("phylum_richness",  0))   if row else 0
+
+        cell_left  = j * cell_w
+        label_w    = cell_w * label_f          # pixel units reserved for label on the left
+        bar_start  = cell_left + label_w
+        bar_area_w = cell_w * (1 - label_f)   # pixel units for the bar itself
+
+        # richness label to the left of the bar
+        ax.text(bar_start - 2, 0.5,
+                str(richness),
+                ha="right", va="center",
+                fontsize=11, color=(80/255, 80/255, 80/255),
+                transform=ax.transData, zorder=3)
+
+        # vertical tick lines every 1 Shannon unit
+        for tk in SHANNON_TICKS:
+            x = bar_start + bar_area_w * (tk / SHANNON_MAX)
+            ax.plot([x, x], [0, 1],
+                    color=tuple(c / 255 for c in GRID_CLR),
+                    linewidth=0.5, zorder=1)
+
+        # bar fill
+        filled_w = bar_area_w * (max(0.0, min(shannon_val, SHANNON_MAX)) / SHANNON_MAX)
+        if filled_w > 0:
+            ax.add_patch(mpatches.Rectangle(
+                (bar_start, 0), filled_w, 1,
+                color=tuple(c / 255 for c in color),
+                zorder=2
+            ))
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight",
+                pad_inches=0, facecolor="white", dpi=100)
+    plt.close(fig)
+    buf.seek(0)
 
     tf = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-    img.save(tf.name); tf.close()
+    Image.open(buf).save(tf.name)
+    tf.close()
     _tmp_files.append(tf.name)
 
     f = ete_faces.ImgFace(tf.name)
     f.margin_left = f.margin_right = f.margin_top = f.margin_bottom = 0
-    _bar_cache[key] = f
-    return f
-
-def make_richness_label(richness, w=40, h=DIV_BAR_H):
-    key = ("rich", w, h, richness)
-    if key in _bar_cache:
-        return _bar_cache[key]
-
-    img = Image.new("RGB", (w, h), BG_CLR)
-    draw = ImageDraw.Draw(img)
-    draw.text((2, h//2 - 5), f"n={richness}", fill=(80, 80, 80))
-
-    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-    img.save(tf.name); tf.close()
-    _tmp_files.append(tf.name)
-
-    f = ete_faces.ImgFace(tf.name)
-    f.margin_left = f.margin_right = f.margin_top = f.margin_bottom = 0
-    _bar_cache[key] = f
+    _div_cache[sp] = f
     return f
 
 # --- Bins panel faces (matplotlib per-row images) ---
@@ -258,9 +286,9 @@ COLORS  = {
     "cyanobacteriota": "#F1C40F",
     "basidiomycota":   "#ea97e3",
 }
-MAX_BINS   = 15
-BINS_W     = 800   # total pixel width of bins panel per row
-BINS_H     = BAR_H
+MAX_BINS = 15
+BINS_W   = 800
+BINS_H   = BAR_H
 
 _bins_cache = {}
 
@@ -280,7 +308,6 @@ def _bins_img_face(sp, w=BINS_W, h=BINS_H):
     ax.set_ylim(0, 1)
     ax.axis("off")
 
-
     for j, ph in enumerate(PHYLUMS):
         sub_std = df_std[(df_std["species"] == sp) & (df_std["phylum"] == ph)]
         sub_euk = df_euk[(df_euk["species"] == sp) & (df_euk["phylum"] == ph)]
@@ -288,8 +315,8 @@ def _bins_img_face(sp, w=BINS_W, h=BINS_H):
         cell_left = j * cell_w
 
         for sub, x_anchor, is_euk in [
-            (sub_std, cell_left + bar_gap,                False),
-            (sub_euk, cell_left + max_bar_w + bar_gap*4,  True),
+            (sub_std, cell_left + bar_gap,               False),
+            (sub_euk, cell_left + max_bar_w + bar_gap*4, True),
         ]:
             if len(sub) == 0:
                 continue
@@ -308,11 +335,10 @@ def _bins_img_face(sp, w=BINS_W, h=BINS_H):
                 transform=ax.transData, zorder=3
             ))
 
-            # label to the right of the bar: count/completeness
             ax.text(x_anchor + bar_w + 0.02, 0.5,
                     f"{count}/{best:.0f}",
                     ha="left", va="center",
-                    fontsize=12, color=COLORS[ph],
+                    fontsize=11, color=COLORS[ph],
                     transform=ax.transData, zorder=4)
 
     buf = io.BytesIO()
@@ -346,7 +372,7 @@ def layout(node):
     faces.add_face_to_node(RectFace(LEFT_GAP_PX, BAR_H, fgcolor=None, bgcolor=None),
                            node, column=1, position="aligned")
 
-    # col 2: reads
+    # col 2: reads bar
     if vals:
         reads_M = float(vals["reads_M"])
         bases_G = float(vals["bases_Gbp"])
@@ -368,14 +394,14 @@ def layout(node):
     faces.add_face_to_node(RectFace(BETWEEN_COL_GAP_PX, BAR_H_TAX, fgcolor=None, bgcolor=None),
                            node, column=5, position="aligned")
 
-    # col 6: kingdom bar — Fungi / Metazoa / Viridiplantae / Bacteria (as "other")
+    # col 6: kingdom bar — Fungi / Metazoa / Viridiplantae / Bacteria
     evals   = kingdom_map.get(sci, (0.0, 0.0, 0.0))
     bval    = domain_map.get(sci, (0.0,))[0]
     e_segments = [
         (COL_EUK["Fungi"],         evals[0]),
         (COL_EUK["Metazoa"],       evals[1]),
         (COL_EUK["Viridiplantae"], evals[2]),
-        (COL_BACTERIA,             bval),      # Bacteria in yellow as last segment
+        (COL_BACTERIA,             bval),
     ]
     faces.add_face_to_node(make_bar_face(e_segments), node, column=6, position="aligned")
 
@@ -383,48 +409,17 @@ def layout(node):
     faces.add_face_to_node(RectFace(BETWEEN_COL_GAP_PX, BAR_H, fgcolor=None, bgcolor=None),
                            node, column=7, position="aligned")
 
-
-    # --- Three diversity bar columns ---
-    for div_dict, color, col_idx in [
-        (mito_div,     COL_MITO,         8),
-        (plastid_div,  COL_PLASTID,      11),
-        (bacteria_div, COL_BACTERIA_DIV, 14),
-    ]:
-        faces.add_face_to_node(
-            RectFace(BETWEEN_COL_GAP_PX, DIV_BAR_H, fgcolor=None, bgcolor=None),
-            node, column=col_idx - 1, position="aligned")
-
-        row = div_dict.get(key)
-        if row:
-            shannon_val = float(row.get("shannon_phylum", 0.0))
-            richness    = int(row.get("phylum_richness", 0))
-        else:
-            shannon_val = 0.0
-            richness    = 0
-
-        # bar image
-        faces.add_face_to_node(
-            make_diversity_bar(shannon_val, richness, color),
-            node, column=col_idx, position="aligned")
-
-        # richness label as image in next column
-        faces.add_face_to_node(
-            make_richness_label(richness),
-            node, column=col_idx + 1, position="aligned")
-
-    # gap before bins panel
-    faces.add_face_to_node(
-        RectFace(BETWEEN_COL_GAP_PX, BAR_H, fgcolor=None, bgcolor=None),
-        node, column=17, position="aligned")
-
-    # gap before bins panel
-    faces.add_face_to_node(
-        RectFace(BETWEEN_COL_GAP_PX, BAR_H, fgcolor=None, bgcolor=None),
-        node, column=18, position="aligned")
-
-    # col 14: bins panel
+    # col 8: single combined diversity panel (mito + plastid + bacteria bars + labels)
     if key:
-        faces.add_face_to_node(_bins_img_face(key), node, column=19, position="aligned")
+        faces.add_face_to_node(_diversity_img_face(key), node, column=8, position="aligned")
+
+    # gap before bins panel
+    faces.add_face_to_node(RectFace(BETWEEN_COL_GAP_PX, BAR_H, fgcolor=None, bgcolor=None),
+                           node, column=9, position="aligned")
+
+    # col 10: bins panel
+    if key:
+        faces.add_face_to_node(_bins_img_face(key), node, column=10, position="aligned")
 
 
 # --- TreeStyle ---
