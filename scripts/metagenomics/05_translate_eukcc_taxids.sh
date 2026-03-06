@@ -17,7 +17,8 @@ conda activate eukcc
 export TAXONKIT_DB="/data/tol/resources/taxonomy/latest/new_taxdump"
 
 #for path in ${input_dir}/*/bins/taxonomy_eukcc
-for path in ${input_dir}/Xanthoria_parietina/bins/taxonomy_eukcc ${input_dir}/Cystocoleus_ebeneus/bins/taxonomy_eukcc 
+#for path in ${input_dir}/Xanthoria_parietina/bins/taxonomy_eukcc ${input_dir}/Cystocoleus_ebeneus/bins/taxonomy_eukcc 
+for path in ${input_dir}/*/bins/taxonomy_eukcc_eukbin
 do  
     in=${path}/eukcc.csv
     out=${path}/eukcc_lineage_names.csv

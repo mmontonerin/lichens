@@ -3,7 +3,8 @@ import os
 import sys
 
 input_path = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome"
-output_subdir = "bin_selection"  # to be created under each species folder
+#output_subdir = "bin_selection"  # to be created under each species folder
+output_subdir = "bin_selection_eukbin_new"  # to be created under each species folder
 
 # To search on lineage section of the table
 lineages = {
@@ -28,11 +29,10 @@ for sp in sorted(os.listdir(input_path)):
 #        continue
     
     # Build paths
-    tax_dir   = os.path.join(sp_dir, "bins", "taxonomy_eukcc")
+    tax_dir   = os.path.join(sp_dir, "bins", "taxonomy_eukcc_eukbin")
     table     = os.path.join(tax_dir, "eukcc_lineage_names.csv") # It is a tsv file despite name
-    metabat2  = os.path.join(sp_dir, "bins", "fasta", "metabat2")
-    merged    = os.path.join(tax_dir, "merged_bins")
-    out_base  = os.path.join(sp_dir, "bin_selection")
+    eukbin  = os.path.join(sp_dir, "bins", "fasta", "eukbin","bins")
+    out_base  = os.path.join(sp_dir, "bin_selection_eukbin")
 
     if not os.path.isfile(table):
         # species without the table -> skip
@@ -83,19 +83,11 @@ for sp in sorted(os.listdir(input_path)):
             last_tax = fix_spaces(last_tax)
 
             # Build new filename
-            base = bin_name[:-3] if bin_name.endswith(".fa") else bin_name
-            new_base = f"{base}_c{comp}_co{cont}_{last_tax}"
+            base = bin_name[4:-3] if bin_name.endswith(".fa") else bin_name
+            new_base = f"{sp}_metamdbg_eukbin_{base}_c{comp}_co{cont}_{last_tax}"
 
-            # Source path (merged.* vs metabat2/)
-            if bin_name.startswith("merged."):
-                src = os.path.join(merged, bin_name)
-                ext = ".fa"
-            else:
-                src = os.path.join(metabat2, bin_name)  # files are now plain .fa
-                ext = ".fa"
-
-            if not os.path.isfile(src):
-                continue
+            src = os.path.join(eukbin, bin_name)
+            ext = ".fa"
 
             new_name = f"{new_base}{ext}"
             dst = os.path.join(out_dirs[bucket], new_name)

@@ -9,7 +9,8 @@ output_dir = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/scripts/ge
 os.makedirs(output_dir, exist_ok=True)
 
 # Categories to process
-lineages = ["ascomycota", "basidiomycota", "cyanobacteriota", "viridiplantae"]
+#lineages = ["ascomycota", "basidiomycota", "cyanobacteriota", "viridiplantae"]
+lineages = ["lepidoptera"]
 
 # Loop over each lineage to create its own config file
 for lineage in lineages:
