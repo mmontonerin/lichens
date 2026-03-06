@@ -32,7 +32,8 @@ for sp in sorted(os.listdir(input_path)):
     tax_dir   = os.path.join(sp_dir, "bins", "taxonomy_eukcc_eukbin")
     table     = os.path.join(tax_dir, "eukcc_lineage_names.csv") # It is a tsv file despite name
     eukbin  = os.path.join(sp_dir, "bins", "fasta", "eukbin","bins")
-    out_base  = os.path.join(sp_dir, "bin_selection_eukbin")
+    merged = os.path.join(sp_dir, "bins", "taxonomy_eukcc_eukbin", "merged_bins")
+    out_base  = os.path.join(sp_dir, output_subdir)
 
     if not os.path.isfile(table):
         # species without the table -> skip
@@ -40,8 +41,13 @@ for sp in sorted(os.listdir(input_path)):
 
     # Create output dirs
     out_dirs = {b: os.path.join(out_base, b) for b in lineages}
+    # Create output dirs and clear any existing contents
     for d in out_dirs.values():
         os.makedirs(d, exist_ok=True)
+        for fname in os.listdir(d):
+            fpath = os.path.join(d, fname)
+            if os.path.islink(fpath) or os.path.isfile(fpath):
+                os.remove(fpath)
 
     with open(table, "r", encoding="utf-8") as fh:
         header = fh.readline().rstrip("\n\r")
@@ -81,16 +87,23 @@ for sp in sorted(os.listdir(input_path)):
             # last lineage to add to file name
             last_tax = lineage.split(";")[-1]
             last_tax = fix_spaces(last_tax)
+            
+            # Source path (merged.* vs basic eukbin)
+            if bin_name.startswith("merged."):
+                src = os.path.join(merged, bin_name)
+                ext = ".fa"
+                base = bin_name[7:-3] if bin_name.endswith(".fa") else bin_name
+                new_base = f"{sp}_metamdbg_eukcc_{base}merge_c{comp}_co{cont}_{last_tax}"
+                new_name = f"{new_base}{ext}"
+                dst = os.path.join(out_dirs[bucket], new_name)
+            else:
+                src = os.path.join(eukbin, bin_name)
+                ext = ".fa"
+                base = bin_name[4:-3] if bin_name.endswith(".fa") else bin_name
+                new_base = f"{sp}_metamdbg_eukbin_{base}_c{comp}_co{cont}_{last_tax}" 
 
-            # Build new filename
-            base = bin_name[4:-3] if bin_name.endswith(".fa") else bin_name
-            new_base = f"{sp}_metamdbg_eukbin_{base}_c{comp}_co{cont}_{last_tax}"
-
-            src = os.path.join(eukbin, bin_name)
-            ext = ".fa"
-
-            new_name = f"{new_base}{ext}"
-            dst = os.path.join(out_dirs[bucket], new_name)
+                new_name = f"{new_base}{ext}"
+                dst = os.path.join(out_dirs[bucket], new_name)
 
             # Replace existing symlink or file if present (but don't nuke directories)
             if os.path.islink(dst) or (os.path.exists(dst) and not os.path.isdir(dst)):

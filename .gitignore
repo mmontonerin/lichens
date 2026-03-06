@@ -35,3 +35,4 @@ scripts/metagenomics_test/markerscan/db
 scripts/metagenomics_test/markerscan/yamls
 scripts/metagenomics_test/markerscan/reads
 scripts/metagenomics_test/markerscan/run_markerscan
+scripts/phylogenies/figures

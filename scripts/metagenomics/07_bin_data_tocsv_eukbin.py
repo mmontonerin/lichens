@@ -12,7 +12,7 @@ MAIN_PATTERN = re.compile(
     r'_meta[a-z]*_'
     r'(?P<method>[A-Za-z0-9]+)'
     r'[._]'
-    r'(?P<binid>\d+)'
+    r'(?P<binid>\d+[a-z]*)'
     r'_(?:c|comp)(?P<comp>[\d.]+)'
     r'(?:_co[\d.]+)?'
     r'_(?P<rest>.+?)'
@@ -61,7 +61,7 @@ def main():
             if not os.path.isdir(sp_dir):
                 continue
 
-            bin_sel = os.path.join(sp_dir, "bin_selection_eukbin")
+            bin_sel = os.path.join(sp_dir, "bin_selection_eukbin_new")
             if not os.path.isdir(bin_sel):
                 continue
 

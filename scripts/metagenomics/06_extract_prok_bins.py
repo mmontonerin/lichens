@@ -22,7 +22,7 @@ for sp in sorted(os.listdir(input_path)):
     tax_dir   = os.path.join(sp_dir, "bins", "taxonomy")
     table = os.path.join(tax_dir, f"gtdbtk.{sp}.bac120.summary.tsv")
     dastool  = os.path.join(sp_dir, "bins", "fasta", "dastool")
-    out_base  = os.path.join(sp_dir, "bin_selection_eukbin")
+    out_base  = os.path.join(sp_dir, "bin_selection_eukbin_new")
 
     if not os.path.isfile(table):
         # species without the table -> skip

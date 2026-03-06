@@ -1,6 +1,8 @@
 import os
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-
+import sys
+import types
+sys.modules["cgi"] = types.ModuleType("cgi")
 from ete3 import faces, AttrFace, RectFace, NodeStyle, NCBITaxa, TreeStyle
 from ete3 import faces as ete_faces
 import pandas as pd
@@ -11,8 +13,10 @@ import tempfile, math
 TAXDB = "/data/tol/resources/taxonomy/latest/taxa.sqlite"
 TAXIDS_CSV = "lichens_taxid.csv"  # columns: taxon (NCBI taxid)
 CSV   = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/kraken2/00_csv-rank_reports_includeparents_reads/domain_all_combined_filtered_bp.csv"
-OUT_PNG    = "lichens_tree_reads-bases.png"
-OUT_PDF    = "lichens_tree_reads-bases.pdf"
+OUT_DIR = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/scripts/phylogenies/figures"
+OUT_PNG = f"{OUT_DIR}/lichens_tree_reads-bases.png"
+OUT_PDF = f"{OUT_DIR}/lichens_tree_reads-bases.pdf"
+os.makedirs(OUT_DIR, exist_ok=True)
 
 # --- Load data ---
 ncbi = NCBITaxa(TAXDB)
