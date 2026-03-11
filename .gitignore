@@ -36,3 +36,7 @@ scripts/metagenomics_test/markerscan/yamls
 scripts/metagenomics_test/markerscan/reads
 scripts/metagenomics_test/markerscan/run_markerscan
 scripts/phylogenies/figures
+scripts/plots/figures
+scripts/blobtools/launch
+scripts/blobtools/working_directory
+scripts/blobtools/samplesheets
