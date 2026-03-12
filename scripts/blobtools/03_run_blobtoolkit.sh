@@ -35,4 +35,4 @@ nextflow run /nfs/treeoflife-01/teams/tola/users/yy5/btk_current/blobtoolkit/mai
     --blastx /nfs/users/nfs_m/mn16/db/uniprot_reference_proteomes/latest/reference_proteomes.dmnd \
     --blastn /nfs/users/nfs_m/mn16/db/nt_blast/latest --fasta ${assembly} --input ${samplesheet} \
     --busco_lineages lepidoptera_odb10,ascomycota_odb10,basidiomycota_odb10,cyanobacteria_odb10,chlorophyta_odb10,metazoa_odb10,viridiplantae_odb10,fungi_odb10 \
-    --taxon ${taxid} --align --outdir ${output_dir}/${sp}/assembly/btk -w ${work_dir} --mask
+    --taxon ${taxid} --align --outdir ${output_dir}/${sp}/assembly/btk_nomasking -w ${work_dir}
