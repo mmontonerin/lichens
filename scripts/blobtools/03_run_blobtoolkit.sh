@@ -1,7 +1,7 @@
 #!/bin/bash
 #BSUB -o ./log/btk-%J-%I-output.log
 #BSUB -e ./log/btk-%J-%I-error.log 
-#BSUB -J btk[1-38]
+#BSUB -J btk[2,5,11-12,26,28-30,32-38]
 #BSUB -q oversubscribed
 #BSUB -G team301
 #BSUB -n 1
@@ -35,4 +35,4 @@ nextflow run /nfs/treeoflife-01/teams/tola/users/yy5/btk_current/blobtoolkit/mai
     --blastx /nfs/users/nfs_m/mn16/db/uniprot_reference_proteomes/latest/reference_proteomes.dmnd \
     --blastn /nfs/users/nfs_m/mn16/db/nt_blast/latest --fasta ${assembly} --input ${samplesheet} \
     --busco_lineages lepidoptera_odb10,ascomycota_odb10,basidiomycota_odb10,cyanobacteria_odb10,chlorophyta_odb10,metazoa_odb10,viridiplantae_odb10,fungi_odb10 \
-    --taxon ${taxid} --align --outdir ${output_dir}/${sp}/assembly/btk_nomasking -w ${work_dir}
+    --taxon ${taxid} --align --outdir ${output_dir}/${sp}/assembly/btk_nomasking2 -w ${work_dir}
