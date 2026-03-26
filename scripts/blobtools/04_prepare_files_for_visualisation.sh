@@ -13,5 +13,5 @@ path="/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome
 
 for btk_out in ${path}/*/assembly/btk_nomasking/blobtoolkit/*.contigs
 do 
-    ln -s ${btk_out} /lustre/scratch122/tol/share/team301-btk-prod/blobplots/
+    ln -sfn ${btk_out} /lustre/scratch122/tol/share/team301-btk-prod/blobplots/
 done

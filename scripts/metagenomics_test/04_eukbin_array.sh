@@ -1,7 +1,7 @@
 #!/bin/bash
 #BSUB -o ./log/eukbin-%J-%I-output.log
 #BSUB -e ./log/eukbin-%J-%I-error.log 
-#BSUB -J eukbin[1-38]
+#BSUB -J eukbin[1,4,5,9,13-15,20,22,24,26-27,29-31,33-34]
 #BSUB -q long
 #BSUB -G team301
 #BSUB -n 8
@@ -9,6 +9,7 @@
 #BSUB -M 40000
 #BSUB -R "select[mem>40000] rusage[mem=40000]"
 
+#-J eukbin[1-38]
 shopt -s nullglob
 module load conda
 conda activate eukbin
@@ -18,7 +19,8 @@ path_config="/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/scripts/met
 
 sp=$(awk -v line=${LSB_JOBINDEX} 'NR==line {print $2}' ${path_config})
 
-out=${sp}/bins/fasta/eukbin
+#out=${sp}/bins/fasta/eukbin
+out=${sp}/bins/fasta/eukbin_retry
 mkdir -p ${out}
 
 species=$(basename ${sp})
