@@ -1,7 +1,7 @@
 #!/bin/bash
 #BSUB -o ./log/remag-%J-%I-output.log
 #BSUB -e ./log/remag-%J-%I-error.log 
-#BSUB -J remag[1-38]
+#BSUB -J remag[2,16-20]
 #BSUB -q long
 #BSUB -G team301
 #BSUB -n 8

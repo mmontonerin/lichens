@@ -40,3 +40,4 @@ scripts/plots/figures
 scripts/blobtools/launch
 scripts/blobtools/working_directory
 scripts/blobtools/samplesheets
+scripts/blobtools/ASCC
