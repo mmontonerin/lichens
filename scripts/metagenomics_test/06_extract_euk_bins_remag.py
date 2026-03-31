@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+input_path = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome"
+#output_subdir = "bin_selection"  # to be created under each species folder
+output_subdir = "bin_selection_remag_new"  # to be created under each species folder
+
+# To search on lineage section of the table
+lineages = {
+    "ascomycota": "ascomycota",
+    "basidiomycota": "basidiomycota",
+    "chlorophyta": "chlorophyta",
+}
+
+def fix_spaces(s: str) -> str:
+    # Some lineages/sp have spaces, which we do not want as filename
+    return s.replace(" ", "_")
+
+
+for sp in sorted(os.listdir(input_path)):
+    sp_dir = os.path.join(input_path, sp)
+    if not os.path.isdir(sp_dir):
+        continue
+
+#for sp in ["Xanthoria_parietina", "Cystocoleus_ebeneus"]:
+#    sp_dir = os.path.join(input_path, sp)
+#    if not os.path.isdir(sp_dir):
+#        continue
+    
+    # Build paths
+    tax_dir   = os.path.join(sp_dir, "bins", "taxonomy_eukcc_remag")
+    table     = os.path.join(tax_dir, "eukcc_lineage_names.csv") # It is a tsv file despite name
+    remag  = os.path.join(sp_dir, "bins", "fasta", "remag", "bins")
+    merged = os.path.join(sp_dir, "bins", "taxonomy_eukcc_remag", "merged_bins")
+    out_base  = os.path.join(sp_dir, output_subdir)
+
+    if not os.path.isfile(table):
+        # species without the table -> skip
+        continue
+
+    # Create output dirs
+    out_dirs = {b: os.path.join(out_base, b) for b in lineages}
+    # Create output dirs and clear any existing contents
+    for d in out_dirs.values():
+        os.makedirs(d, exist_ok=True)
+        for fname in os.listdir(d):
+            fpath = os.path.join(d, fname)
+            if os.path.islink(fpath) or os.path.isfile(fpath):
+                os.remove(fpath)
+
+    with open(table, "r", encoding="utf-8") as fh:
+        header = fh.readline().rstrip("\n\r")
+        if not header:
+            continue
+        cols = header.split("\t")
+        try:
+            i_bin = cols.index("bin")
+            i_comp = cols.index("completeness")
+            i_cont = cols.index("contamination")
+            i_lin = cols.index("lineage_names")
+        except ValueError:
+            print(f"ERROR: Missing expected columns in {table}", file=sys.stderr)
+            continue
+
+        for line in fh:
+            line = line.rstrip("\n\r")
+            if not line:
+                continue
+            parts = line.split("\t")
+
+            bin_name = parts[i_bin].strip()
+            comp = parts[i_comp].strip()
+            cont = parts[i_cont].strip()
+            lineage = parts[i_lin].strip()
+            low = lineage.lower()
+
+            bucket = None
+            for b in lineages:
+                # lineage is ';'-separated
+                if f";{b};" in low or low.endswith(";" + b) or low.startswith(b + ";") or low == b:
+                    bucket = b
+                    break
+            if bucket is None:
+                continue
+
+            # last lineage to add to file name
+            last_tax = lineage.split(";")[-1]
+            last_tax = fix_spaces(last_tax)
+            
+            # Source path (merged.* vs basic remag)
+            if bin_name.startswith("merged."):
+                src = os.path.join(merged, bin_name)
+                ext = ".fa"
+                base = bin_name[7:-3] if bin_name.endswith(".fa") else bin_name
+                new_base = f"{sp}_metamdbg_eukcc_{base}merge_c{comp}_co{cont}_{last_tax}"
+                new_name = f"{new_base}{ext}"
+                dst = os.path.join(out_dirs[bucket], new_name)
+            else:
+                src = os.path.join(remag, bin_name)
+                ext = ".fa"
+                base = bin_name[4:-3] if bin_name.endswith(".fa") else bin_name
+                new_base = f"{sp}_metamdbg_remag_{base}_c{comp}_co{cont}_{last_tax}" 
+
+                new_name = f"{new_base}{ext}"
+                dst = os.path.join(out_dirs[bucket], new_name)
+
+            # Replace existing symlink or file if present (but don't nuke directories)
+            if os.path.islink(dst) or (os.path.exists(dst) and not os.path.isdir(dst)):
+                try:
+                    os.remove(dst)
+                except OSError:
+                    pass
+            try:
+                os.symlink(src, dst)
+                print(f"{sp}: {bucket}: {bin_name} -> {new_name}")
+            except OSError as e:
+                print(f"ERROR: symlink failed {dst}: {e}", file=sys.stderr)

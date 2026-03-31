@@ -12,20 +12,25 @@ df1 = pd.read_csv(
 df2 = pd.read_csv(
     "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/bins_filtered_eukbin.csv"
 )
-
+df3 = pd.read_csv(
+    "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_tables/bins_filtered_remag.csv"
+)
 
 output_dir = "/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/scripts/plots/figures"
 os.makedirs(output_dir, exist_ok=True)
 
-# Drop cyanobacteriota from eukbin tables (same as bins_filtered)
+# Drop cyanobacteriota from eukbin and remag tables (same as bins_filtered)
 df2 = df2[df2["phylum"] != "cyanobacteriota"]
+df3 = df3[df3["phylum"] != "cyanobacteriota"]
 
-# Drop dastool rows from eukbin table — identical data already present in bins_filtered
+# Drop dastool rows from eukbin and remag tables — identical data already present in bins_filtered
 df2 = df2[df2["binning_method"] != "dastool"]
+df3 = df3[df3["binning_method"] != "dastool"]
 
 # ── Normalise method labels ──────────────────────────────────────────────────
 # bins_filtered uses: metabat2, eukcc (metabat2+eukcc), dastool (metabat2+dastool)
-# bins_filtered_eukbin uses: eukbin, eukcc (eukbin+eukcc), dastool
+# bins_filtered_eukbin uses: eukbin, eukcc (eukbin+eukcc)
+# bins_filtered_remag uses: remag, eukcc (remag+eukcc)
 
 
 # eukcc bins are merged into their parent method (metabat2 or eukbin)
@@ -33,10 +38,13 @@ df1["method_label"] = df1["binning_method"].map(
     {"metabat2": "metabat2", "eukcc": "metabat2", "dastool": "dastool"}
 )
 df2["method_label"] = df2["binning_method"].map(
-    {"eukbin": "eukbin", "eukcc": "eukbin", "dastool": "dastool"}
+    {"eukbin": "eukbin", "eukcc": "eukbin"}
+)
+df3["method_label"] = df3["binning_method"].map(
+    {"remag": "remag", "eukcc": "remag"}
 )
 
-df = pd.concat([df1, df2], ignore_index=True)
+df = pd.concat([df1, df2, df3], ignore_index=True)
 
 # ── Colors ───────────────────────────────────────────────────────────────────
 
@@ -47,7 +55,7 @@ phylum_colors = {
     "basidiomycota":   "#ea97e3",
 }
 
-method_order = ["metabat2", "eukbin", "dastool"]
+method_order = ["metabat2", "eukbin", "remag", "dastool"]
 phylum_order = ["ascomycota", "chlorophyta", "basidiomycota", "cyanobacteriota"]
 
 # ── Poster style ─────────────────────────────────────────────────────────────
@@ -126,12 +134,12 @@ for ax, phylum in zip(axes1, phylum_order):
 axes1[0].set_ylabel("Completeness (%)", fontweight="bold")
 fig1.tight_layout()
 # === Export ===
-png_path1 = os.path.join(output_dir, "plot1_completeness_violin_methods.png")
-pdf_path1 = os.path.join(output_dir, "plot1_completeness_violin_methods.pdf")
+png_path1 = os.path.join(output_dir, "ALL_completeness_violin_methods.png")
+pdf_path1 = os.path.join(output_dir, "ALL_completeness_violin_methods.pdf")
 
 fig1.savefig(pdf_path1, bbox_inches="tight", dpi=800)
 fig1.savefig(png_path1, bbox_inches="tight", dpi=800)
-print("Saved plot1_completeness_violin_methods.pdf / .png")
+print("Saved ALL_completeness_violin_methods.pdf / .png")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -203,11 +211,9 @@ for ax, phylum in zip(axes2, phylum_order):
 
 fig2.tight_layout()
 # === Export ===
-png_path2 = os.path.join(output_dir, "plot2_nbins_violin_methods.png")
-pdf_path2 = os.path.join(output_dir, "plot2_nbins_violin_methods.pdf")
+png_path2 = os.path.join(output_dir, "ALL_nbins_violin_methods.png")
+pdf_path2 = os.path.join(output_dir, "ALL_nbins_violin_methods.pdf")
 
 fig2.savefig(pdf_path2, bbox_inches="tight", dpi=800)
 fig2.savefig(png_path2, bbox_inches="tight", dpi=800)
-print("Saved plot2_nbins_violin_methods.pdf / .png")
-
-plt.show()
+print("Saved ALL_nbins_violin_methods.pdf / .png")
