@@ -41,3 +41,6 @@ scripts/blobtools/launch
 scripts/blobtools/working_directory
 scripts/blobtools/samplesheets
 scripts/blobtools/ASCC
+scripts/metagenomics_individual/log
+scripts/metagenomics_individual/yamls
+scripts/metagenomics_individual/launch
