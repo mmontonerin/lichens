@@ -1,0 +1,31 @@
+#!/bin/bash
+#BSUB -o ./log/remag-%J-%I-output.log
+#BSUB -e ./log/remag-%J-%I-error.log 
+#BSUB -J remag[1-39]
+#BSUB -q long
+#BSUB -G team301
+#BSUB -n 8
+#BSUB -W 48:00
+#BSUB -M 40000
+#BSUB -R "select[mem>40000] rusage[mem=40000]"
+
+shopt -s nullglob
+module load conda
+conda activate remag
+
+data="/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/results/metagenome_individual"
+path_config="/lustre/scratch127/tol/teams/blaxter/users/mn16/lichens/scripts/metagenomics_individual/04b_array_config.txt"
+
+sp=$(awk -v line=${LSB_JOBINDEX} 'NR==line {print $2}' ${path_config})
+
+out=${sp}/bins/fasta/remag
+mkdir -p ${out}
+
+species=$(basename ${sp})
+assembly_folder=${sp}/assembly
+assembly=${assembly_folder}/fasta/${species}_metamdbg.contigs.fasta.gz
+
+filename=$(basename ${assembly} ".contigs.fasta.gz")    
+
+remag --fasta ${assembly} --coverage ${assembly_folder}/depth/${filename}_depth.tsv \
+    --output ${out} --threads 8
