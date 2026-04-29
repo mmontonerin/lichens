@@ -44,3 +44,5 @@ scripts/blobtools/ASCC
 scripts/metagenomics_individual/log
 scripts/metagenomics_individual/yamls
 scripts/metagenomics_individual/launch
+scripts/markadoros/log
+scripts/markadoros/db
