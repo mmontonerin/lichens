@@ -47,3 +47,4 @@ scripts/metagenomics_individual/launch
 scripts/markadoros/log
 scripts/markadoros/db
 scripts/kraken_investigation/log
+scripts/kraken_investigation/db
